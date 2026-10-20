@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Paper plane in a speech bubble on a deep teal tile. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#0F4C5C" android:pathData="M24,0h60a24,24 0,0 1,24 24v60a24,24 0,0 1,-24 24h-60a24,24 0,0 1,-24 -24v-60a24,24 0,0 1,24 -24z" />
+    <path android:fillColor="#E8F4F1" android:pathData="M30,32h48a8,8 0,0 1,8 8v26a8,8 0,0 1,-8 8h-30l-12,10v-10h-6a8,8 0,0 1,-8 -8v-26a8,8 0,0 1,8 -8z" />
+    <path android:fillColor="#F2994A" android:pathData="M40,52l32,-12l-10,28l-6,-10z" />
+    <path android:fillColor="#C46F25" android:pathData="M56,58l6,10l-2,-12z" />
+</vector>

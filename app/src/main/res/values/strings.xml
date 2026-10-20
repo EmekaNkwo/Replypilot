@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ReplyPilot</string>
+    <string name="notification_listener_label">ReplyPilot auto-replies</string>
+    <string name="autosend_label">ReplyPilot auto-send</string>
+    <string name="autosend_description">Helps ReplyPilot work inside WhatsApp, Telegram, Instagram and Messenger. It sends WhatsApp messages you scheduled (opens the chat, presses Send, checks it went out); when you pick a recipient it reads the name of the chat you open; and for Telegram, Instagram and Messenger it fills in your scheduled message so you only tap Send. It acts only on actions you start in ReplyPilot and never reads, stores or shares your other chats.</string>
+</resources>
