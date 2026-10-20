@@ -1,8 +1,8 @@
 package com.replypilot.features.settings
 
-import com.replypilot.core.accessibility.AutoSendBridge
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.replypilot.core.accessibility.AutoSendBridge
 import com.replypilot.core.datastore.AiProviderKind
 import com.replypilot.core.datastore.AppPreferences
 import com.replypilot.core.datastore.AppPreferencesRepository

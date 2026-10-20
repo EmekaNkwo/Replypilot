@@ -1,9 +1,5 @@
 package com.replypilot.features.scheduler
 
-import com.replypilot.core.accessibility.ChatApp
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import com.replypilot.domain.model.ChannelCapability
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,10 +41,12 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.replypilot.core.accessibility.ChatApp
 import com.replypilot.core.design.BackTopBar
 import com.replypilot.core.design.ConfirmDialog
 import com.replypilot.core.design.SectionHeader
 import com.replypilot.core.design.Spacing
+import com.replypilot.domain.model.ChannelCapability
 import com.replypilot.domain.model.ZoneMode
 import com.replypilot.domain.scheduling.Severity
 import com.replypilot.domain.scheduling.ValidationField
@@ -57,6 +56,7 @@ import com.replypilot.domain.templates.TemplateRenderer
 import com.replypilot.navigation.AppNavigator
 import com.replypilot.navigation.Routes
 import java.time.ZoneId
+import kotlinx.coroutines.launch
 
 private enum class Dialog { CONTACTS, TEMPLATES, DATE, TIME, ZONE, END_DATE, SKIP_DATE, DISCARD }
 

@@ -1,6 +1,5 @@
 package com.replypilot.features.scheduler
 
-import com.replypilot.core.handoff.ManualSend
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,6 +41,7 @@ import com.replypilot.core.design.SectionHeader
 import com.replypilot.core.design.SimulatedPill
 import com.replypilot.core.design.Spacing
 import com.replypilot.core.design.StatusPill
+import com.replypilot.core.handoff.ManualSend
 import com.replypilot.domain.common.Clock
 import com.replypilot.domain.model.ActivityEvent
 import com.replypilot.domain.model.ExecutionItem

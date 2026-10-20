@@ -1,7 +1,5 @@
 package com.replypilot.data.local
 
-import com.replypilot.domain.model.Attachment
-import kotlinx.serialization.builtins.ListSerializer
 import com.replypilot.core.database.ActivityEntity
 import com.replypilot.core.database.AppJson
 import com.replypilot.core.database.ContactEntity
@@ -17,6 +15,7 @@ import com.replypilot.core.database.TemplateEntity
 import com.replypilot.domain.model.ActivityEvent
 import com.replypilot.domain.model.ActivityResult
 import com.replypilot.domain.model.ActivityType
+import com.replypilot.domain.model.Attachment
 import com.replypilot.domain.model.AutoReplyRule
 import com.replypilot.domain.model.ChannelId
 import com.replypilot.domain.model.Contact
@@ -36,6 +35,7 @@ import com.replypilot.domain.model.ScheduledMessage
 import com.replypilot.domain.model.SequenceEnrollment
 import com.replypilot.domain.model.TemplateCategory
 import com.replypilot.domain.scheduling.AddressRules
+import kotlinx.serialization.builtins.ListSerializer
 
 /** Entity <-> domain conversions. Unknown enum values (e.g. after a downgrade) fall back safely. */
 

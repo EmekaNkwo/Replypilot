@@ -1,16 +1,12 @@
 package com.replypilot.features.rules
 
-import com.replypilot.core.accessibility.AutoSendBridge
-import com.replypilot.core.accessibility.ChatApp
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Dispatchers
-import com.replypilot.domain.scheduling.AddressRules
-import com.replypilot.domain.model.ChannelIdentity
-import com.replypilot.core.contacts.PhoneContacts
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.replypilot.core.accessibility.AutoSendBridge
+import com.replypilot.core.accessibility.ChatApp
+import com.replypilot.core.contacts.PhoneContacts
 import com.replypilot.domain.common.Clock
 import com.replypilot.domain.messaging.AdapterRegistry
 import com.replypilot.domain.model.AutoReplyRule
@@ -18,6 +14,7 @@ import com.replypilot.domain.model.AutomationSettings
 import com.replypilot.domain.model.AvailabilityState
 import com.replypilot.domain.model.ChannelCapability
 import com.replypilot.domain.model.ChannelId
+import com.replypilot.domain.model.ChannelIdentity
 import com.replypilot.domain.model.ChannelStatus
 import com.replypilot.domain.model.Contact
 import com.replypilot.domain.model.MatchType
@@ -28,20 +25,25 @@ import com.replypilot.domain.repository.RuleRepository
 import com.replypilot.domain.repository.SettingsRepository
 import com.replypilot.domain.repository.TemplateRepository
 import com.replypilot.domain.rules.Evaluation
+import com.replypilot.domain.scheduling.AddressRules
 import com.replypilot.domain.simulation.RuleSimulator
 import com.replypilot.domain.simulation.SimulationScenario
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class RuleTestState(
     val text: String = "",
@@ -82,6 +84,8 @@ data class RuleEditorState(
     }
 }
 
+private const val RULE_PICK_OWNER = "rule-editor"
+
 @HiltViewModel
 class RuleEditorViewModel @Inject constructor(
     savedState: SavedStateHandle,
@@ -110,7 +114,13 @@ class RuleEditorViewModel @Inject constructor(
             _events.emit(EditorEvent.Message("Turn on ReplyPilot in Accessibility first: Settings → Connected channels → WhatsApp → Turn on Auto-send."))
             return@launch
         }
-        val titles = chatBridge.pickChats(app).map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        if (!chatBridge.startPick(app, RULE_PICK_OWNER)) {
+            _events.emit(EditorEvent.Message("Finish the chat choice that's already open first."))
+            return@launch
+        }
+        val result = chatBridge.pickResult.filterNotNull().first { it.owner == RULE_PICK_OWNER }
+        chatBridge.consumePickResult(RULE_PICK_OWNER)
+        val titles = result.titles.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
         if (titles.isEmpty()) {
             _events.emit(EditorEvent.Message("No chat was chosen."))
             return@launch

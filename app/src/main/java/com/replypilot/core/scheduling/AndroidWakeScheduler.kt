@@ -11,6 +11,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.replypilot.core.coroutines.ApplicationScope
 import com.replypilot.core.datastore.AppPreferencesRepository
 import com.replypilot.core.permissions.PlatformStatus
 import com.replypilot.domain.repository.WakeScheduler
@@ -18,7 +19,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.replypilot.core.coroutines.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

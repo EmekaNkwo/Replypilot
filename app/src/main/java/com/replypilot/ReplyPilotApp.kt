@@ -1,18 +1,18 @@
 package com.replypilot
 
 import android.app.Application
+import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import android.util.Log
 import com.replypilot.core.accessibility.AppForeground
 import com.replypilot.core.attachments.AttachmentStore
 import com.replypilot.core.coroutines.ApplicationScope
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import com.replypilot.core.notifications.AlertNotifier
 import com.replypilot.core.scheduling.AndroidWakeScheduler
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @HiltAndroidApp
 class ReplyPilotApp : Application(), Configuration.Provider {

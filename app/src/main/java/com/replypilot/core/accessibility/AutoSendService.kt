@@ -1,32 +1,33 @@
 package com.replypilot.core.accessibility
 
-import com.replypilot.domain.model.Attachment
-import android.webkit.MimeTypeMap
-import android.graphics.Path
-import android.accessibilityservice.GestureDescription
-import android.widget.TextView
-import android.view.WindowManager
-import android.view.Gravity
-import android.graphics.drawable.GradientDrawable
-import android.graphics.Typeface
-import android.graphics.PixelFormat
-import android.graphics.Color
-import com.replypilot.core.attachments.AttachmentStore
-import com.replypilot.core.attachments.ShareIntents
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.GestureDescription
+import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
+import android.graphics.Path
+import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.util.Log
+import android.view.Gravity
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.webkit.MimeTypeMap
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.replypilot.BuildConfig
+import com.replypilot.core.attachments.AttachmentStore
+import com.replypilot.core.attachments.ShareIntents
 import com.replypilot.core.scheduling.AndroidWakeScheduler
+import com.replypilot.domain.model.Attachment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -110,8 +111,16 @@ class AutoSendService : AccessibilityService() {
         return runCatching { startActivity(intent) }.isSuccess
     }
 
+    /**
+     * Brings back the ReplyPilot screen the user left (e.g. the composer), not a new one: a launch intent only reuses the
+     * open screen when it matches how the app was first opened, so after a notification or deep link it would start
+     * over on Home.
+     */
     internal fun returnToReplyPilot() {
-        val intent = packageManager.getLaunchIntentForPackage(packageName)?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val task = getSystemService(ActivityManager::class.java)?.appTasks?.firstOrNull()
+        if (task != null && runCatching { task.moveToFront() }.isSuccess) return
+        val intent = packageManager.getLaunchIntentForPackage(packageName)
+            ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
         if (intent == null || runCatching { startActivity(intent) }.isFailure) performGlobalAction(GLOBAL_ACTION_HOME)
     }
 

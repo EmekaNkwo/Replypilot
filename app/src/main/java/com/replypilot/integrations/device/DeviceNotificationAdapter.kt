@@ -2,13 +2,11 @@ package com.replypilot.integrations.device
 
 import android.content.Context
 import android.provider.Telephony
-import java.io.File
-import com.replypilot.core.datastore.AppPreferencesRepository
 import com.replypilot.core.accessibility.AutoSendBridge
 import com.replypilot.core.accessibility.AutoSendResult
 import com.replypilot.core.accessibility.AutoSendTarget
+import com.replypilot.core.datastore.AppPreferencesRepository
 import com.replypilot.core.notifications.ReplyActionRegistry
-import com.replypilot.domain.scheduling.AddressRules
 import com.replypilot.core.permissions.PlatformStatus
 import com.replypilot.domain.messaging.ChannelAdapter
 import com.replypilot.domain.messaging.OutboundMessage
@@ -18,6 +16,8 @@ import com.replypilot.domain.model.AvailabilityState
 import com.replypilot.domain.model.ChannelStatus
 import com.replypilot.domain.model.FailureCode
 import com.replypilot.domain.model.ManualHandoff
+import com.replypilot.domain.scheduling.AddressRules
+import java.io.File
 
 /** Replies through a messaging app's own notification Reply action, with a manual handoff otherwise. */
 class DeviceNotificationAdapter(

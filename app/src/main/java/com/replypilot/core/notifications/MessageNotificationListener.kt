@@ -6,10 +6,10 @@ import android.util.Log
 import com.replypilot.core.coroutines.ApplicationScope
 import com.replypilot.core.datastore.AppPreferencesRepository
 import com.replypilot.domain.automation.IncomingMessageHandler
+import com.replypilot.domain.messaging.AdapterRegistry
 import com.replypilot.domain.model.IncomingMessage
 import com.replypilot.integrations.device.DeviceChannels
 import com.replypilot.integrations.device.DeviceNotificationAdapter
-import com.replypilot.domain.messaging.AdapterRegistry
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException

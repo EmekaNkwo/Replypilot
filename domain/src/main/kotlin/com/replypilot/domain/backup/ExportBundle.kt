@@ -3,8 +3,8 @@ package com.replypilot.domain.backup
 import com.replypilot.domain.model.AutoReplyRule
 import com.replypilot.domain.model.MessageSequence
 import com.replypilot.domain.model.MessageTemplate
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /** Portable, versioned export of user-defined automation. Contains no contacts or message history. */

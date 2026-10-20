@@ -1,13 +1,11 @@
 package com.replypilot.features.autoresponder
 
-import com.replypilot.core.accessibility.ChatApp
-import com.replypilot.domain.model.ChannelId
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.rememberLauncherForActivityResult
-import android.provider.ContactsContract
-import android.content.Intent
 import android.app.Activity
+import android.content.Intent
+import android.provider.ContactsContract
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.replypilot.core.accessibility.ChatApp
 import com.replypilot.core.design.BackTopBar
 import com.replypilot.core.design.ConfirmDialog
 import com.replypilot.core.design.EmptyState
@@ -60,6 +61,7 @@ import com.replypilot.core.design.LocalStatusColors
 import com.replypilot.core.design.Notice
 import com.replypilot.core.design.NoticeTone
 import com.replypilot.core.design.Spacing
+import com.replypilot.domain.model.ChannelId
 import com.replypilot.domain.model.ConditionCombinator
 import com.replypilot.domain.model.ReplyMode
 import com.replypilot.domain.templates.KnownVariables
@@ -75,8 +77,6 @@ import com.replypilot.features.rules.RuleEditorViewModel
 import com.replypilot.features.rules.SwitchRow
 import com.replypilot.navigation.AppNavigator
 import com.replypilot.navigation.Routes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SearchOff
 
 @Composable
 fun RuleEditorScreen(nav: AppNavigator, ruleId: String?) {

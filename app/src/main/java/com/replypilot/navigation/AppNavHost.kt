@@ -18,11 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.replypilot.features.analytics.InsightsScreen
@@ -66,8 +66,7 @@ private inline fun <reified T : Enum<T>> NavBackStackEntry.tab(default: T): T =
 private fun optional(vararg names: String) = names.map { navArgument(it) { type = NavType.StringType; nullable = true; defaultValue = null } }
 
 @Composable
-fun AppNavHost(startOnboarding: Boolean) {
-    val controller = rememberNavController()
+fun AppNavHost(controller: NavHostController, startOnboarding: Boolean) {
     val nav = remember(controller) { AppNavigator(controller) }
     val entry by controller.currentBackStackEntryAsState()
     val currentRoute = entry?.destination?.route.orEmpty()

@@ -2,11 +2,11 @@ package com.replypilot.core
 
 import com.replypilot.core.accessibility.AutoSendResult
 import com.replypilot.core.accessibility.NodeBounds
-import com.replypilot.domain.model.Attachment
 import com.replypilot.core.accessibility.OpenTarget
 import com.replypilot.core.accessibility.UiNode
 import com.replypilot.core.accessibility.UiScreen
 import com.replypilot.core.accessibility.WhatsAppAutomator
+import com.replypilot.domain.model.Attachment
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

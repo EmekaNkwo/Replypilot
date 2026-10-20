@@ -1,19 +1,25 @@
 package com.replypilot.core.accessibility
 
-import com.replypilot.BuildConfig
-import com.replypilot.domain.model.Attachment
 import android.app.KeyguardManager
 import android.content.ComponentName
 import android.content.Context
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
+import com.replypilot.BuildConfig
+import com.replypilot.core.coroutines.ApplicationScope
 import com.replypilot.core.permissions.PlatformStatus
+import com.replypilot.domain.model.Attachment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -30,7 +36,30 @@ class AutoSendBridge @Inject constructor(
     @ApplicationContext private val context: Context,
     private val platform: PlatformStatus,
     private val foreground: AppForeground,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) {
+    /** A finished chat pick, kept until the screen that asked for it collects it (even if that screen was rebuilt). */
+    data class PickResult(val owner: String, val app: ChatApp, val titles: List<String>)
+
+    private val _pickResult = MutableStateFlow<PickResult?>(null)
+    val pickResult: StateFlow<PickResult?> = _pickResult.asStateFlow()
+
+    /**
+     * Starts a chat pick that outlives the screen asking for it: Android may destroy ReplyPilot's screen while the user
+     * is in the other app. The result is published to [pickResult] for [owner]. False if a pick can't start now.
+     */
+    fun startPick(app: ChatApp, owner: String): Boolean {
+        if (service == null || session != null || mutex.isLocked) return false
+        appScope.launch { _pickResult.value = PickResult(owner, app, pickChats(app)) }
+        return true
+    }
+
+    /** Takes the waiting result for [owner], if any. */
+    fun consumePickResult(owner: String): PickResult? {
+        val result = _pickResult.value?.takeIf { it.owner == owner } ?: return null
+        return result.takeIf { _pickResult.compareAndSet(it, null) }
+    }
+
     init {
         // Coming back to ReplyPilot by hand ends a pick that's still waiting (a completed pick has already cleared it).
         foreground.onReturn = { cancelSession() }

@@ -10,10 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.rememberNavController
 import com.replypilot.core.datastore.AppPreferences
 import com.replypilot.core.datastore.AppPreferencesRepository
 import com.replypilot.core.design.ReplyPilotTheme
@@ -40,12 +41,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
+            // Created before preferences finish loading, so a screen Android rebuilt gets its saved back stack back
+            // (instead of starting again on Home).
+            val controller = rememberNavController()
             val viewModel: MainViewModel = hiltViewModel()
             val prefs by viewModel.preferences.collectAsStateWithLifecycle()
             val loaded = prefs
             ReplyPilotTheme(mode = loaded?.themeMode ?: com.replypilot.core.datastore.ThemeMode.SYSTEM) {
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                    if (loaded != null) AppNavHost(startOnboarding = !loaded.onboardingComplete)
+                    if (loaded != null) AppNavHost(controller, startOnboarding = !loaded.onboardingComplete)
                 }
             }
         }

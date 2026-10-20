@@ -2,8 +2,8 @@ package com.replypilot.domain
 
 import com.replypilot.domain.common.HOUR_MS
 import com.replypilot.domain.common.MINUTE_MS
-import com.replypilot.domain.model.ChannelIdentity
 import com.replypilot.domain.model.ChannelId
+import com.replypilot.domain.model.ChannelIdentity
 import com.replypilot.domain.model.Contact
 import com.replypilot.domain.model.Frequency
 import com.replypilot.domain.model.MessageStatus

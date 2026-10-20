@@ -120,3 +120,53 @@ data class ComposerForm(
         }
     }
 }
+
+/**
+ * The composer's form as plain serializable values, kept in the screen's saved state: Android may destroy ReplyPilot's
+ * screen while the user is in WhatsApp choosing chats, and the message they were writing must survive that.
+ */
+@kotlinx.serialization.Serializable
+data class ComposerSnapshot(
+    val editingId: String,
+    val original: ScheduledMessage?,
+    val title: String,
+    val channel: ChannelId,
+    val recipients: List<Recipient>,
+    val body: String,
+    val templateId: String?,
+    val attachments: List<Attachment>,
+    val sendNow: Boolean,
+    val date: String,
+    val time: String,
+    val zoneId: String,
+    val zoneMode: ZoneMode,
+    val frequency: Frequency,
+    val interval: Int,
+    val weekdays: Set<Int>,
+    val monthlyMode: MonthlyMode,
+    val endDate: String?,
+    val maxOccurrences: String,
+    val skipDates: Set<String>,
+    val quietHours: QuietHoursBehavior,
+    val expireMinutes: String,
+    val maxRetries: String,
+) {
+    fun toForm(): ComposerForm = ComposerForm(
+        editingId = editingId, original = original, title = title, channel = channel, recipients = recipients, body = body,
+        templateId = templateId, attachments = attachments, sendNow = sendNow,
+        date = TimeWindows.parseDate(date) ?: LocalDate.now(), time = TimeWindows.parseTime(time) ?: LocalTime.of(9, 0),
+        zoneId = zoneId, zoneMode = zoneMode, frequency = frequency, interval = interval, weekdays = weekdays,
+        monthlyMode = monthlyMode, endDate = endDate?.let(TimeWindows::parseDate), maxOccurrences = maxOccurrences,
+        skipDates = skipDates.mapNotNull(TimeWindows::parseDate).toSet(), quietHours = quietHours,
+        expireMinutes = expireMinutes, maxRetries = maxRetries,
+    )
+
+    companion object {
+        fun of(f: ComposerForm) = ComposerSnapshot(
+            f.editingId, f.original, f.title, f.channel, f.recipients, f.body, f.templateId, f.attachments, f.sendNow,
+            f.date.toString(), f.time.toString(), f.zoneId, f.zoneMode, f.frequency, f.interval, f.weekdays, f.monthlyMode,
+            f.endDate?.toString(), f.maxOccurrences, f.skipDates.map { it.toString() }.toSet(), f.quietHours,
+            f.expireMinutes, f.maxRetries,
+        )
+    }
+}

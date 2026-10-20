@@ -1,30 +1,29 @@
 package com.replypilot.features.scheduler
 
-import com.replypilot.domain.model.Attachment
-import com.replypilot.core.attachments.AttachmentStore
 import android.net.Uri
-import com.replypilot.domain.model.RecipientKind
-import com.replypilot.core.accessibility.ChatApp
-import com.replypilot.core.accessibility.AutoSendBridge
-import com.replypilot.domain.scheduling.ScheduleValidator
-import com.replypilot.core.contacts.PhoneContacts
-import com.replypilot.domain.scheduling.Severity
-import com.replypilot.domain.model.ChannelCapability
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.replypilot.core.accessibility.AutoSendBridge
+import com.replypilot.core.accessibility.ChatApp
 import com.replypilot.core.assistant.ConfiguredAssistant
+import com.replypilot.core.attachments.AttachmentStore
+import com.replypilot.core.contacts.PhoneContacts
+import com.replypilot.core.database.AppJson
 import com.replypilot.core.datastore.AppPreferencesRepository
 import com.replypilot.domain.assistant.AssistOperation
 import com.replypilot.domain.assistant.AssistResult
 import com.replypilot.domain.common.Clock
 import com.replypilot.domain.messaging.AdapterRegistry
+import com.replypilot.domain.model.Attachment
 import com.replypilot.domain.model.AutomationSettings
+import com.replypilot.domain.model.ChannelCapability
 import com.replypilot.domain.model.ChannelId
 import com.replypilot.domain.model.ChannelStatus
 import com.replypilot.domain.model.Contact
 import com.replypilot.domain.model.MessageTemplate
 import com.replypilot.domain.model.Recipient
+import com.replypilot.domain.model.RecipientKind
 import com.replypilot.domain.repository.ContactRepository
 import com.replypilot.domain.repository.ScheduleRepository
 import com.replypilot.domain.repository.SettingsRepository
@@ -33,6 +32,8 @@ import com.replypilot.domain.scheduling.AddressRules
 import com.replypilot.domain.scheduling.RecurrenceCalculator
 import com.replypilot.domain.scheduling.SaveResult
 import com.replypilot.domain.scheduling.ScheduleService
+import com.replypilot.domain.scheduling.ScheduleValidator
+import com.replypilot.domain.scheduling.Severity
 import com.replypilot.domain.scheduling.ValidationIssue
 import com.replypilot.domain.scheduling.hasErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -93,10 +94,15 @@ sealed interface ComposerEvent {
     data class Saved(val text: String) : ComposerEvent
 }
 
+private const val SAVED_FORM = "composer.form"
+private const val SAVED_INITIAL = "composer.initial"
+private const val SNAPSHOT_DEBOUNCE_MS = 300L
+private const val PICK_OWNER = "composer"
+
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ComposerViewModel @Inject constructor(
-    savedState: SavedStateHandle,
+    private val savedState: SavedStateHandle,
     private val schedules: ScheduleRepository,
     private val service: ScheduleService,
     private val adapters: AdapterRegistry,
@@ -165,6 +171,12 @@ class ComposerViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             meta.update { it.copy(channels = adapters.all().map { adapter -> adapter.status() }.sortedBy { it.id.ordinal }) }
+            // Rebuilt after Android destroyed the screen (e.g. while choosing chats in WhatsApp): carry on where the user was.
+            restoreSnapshot()?.let { (current, initial) ->
+                form.value = current
+                initialForm.value = initial
+                return@launch
+            }
             val loaded = when {
                 scheduleId != null -> schedules.get(scheduleId)?.let { ComposerForm.from(it, keepId = true) }
                 duplicateOf != null -> service.duplicate(duplicateOf)?.let { ComposerForm.from(it, keepId = false) }
@@ -176,6 +188,25 @@ class ComposerViewModel @Inject constructor(
             if (scheduleId != null && loaded.editingId.isBlank()) _events.emit(ComposerEvent.Message("That schedule no longer exists; starting a new one."))
         }
     }
+
+    init {
+        collectPicks()
+        // Keep the latest form in the saved state (cheap: only on change, debounced).
+        viewModelScope.launch {
+            combine(form, initialForm) { f, i -> f to i }.debounce(SNAPSHOT_DEBOUNCE_MS).collect { (f, i) ->
+                if (i == null) return@collect
+                savedState[SAVED_FORM] = AppJson.encodeToString(ComposerSnapshot.serializer(), ComposerSnapshot.of(f))
+                savedState[SAVED_INITIAL] = AppJson.encodeToString(ComposerSnapshot.serializer(), ComposerSnapshot.of(i))
+            }
+        }
+    }
+
+    private fun restoreSnapshot(): Pair<ComposerForm, ComposerForm>? = runCatching {
+        val current = savedState.get<String>(SAVED_FORM) ?: return null
+        val initial = savedState.get<String>(SAVED_INITIAL) ?: current
+        AppJson.decodeFromString(ComposerSnapshot.serializer(), current).toForm() to
+            AppJson.decodeFromString(ComposerSnapshot.serializer(), initial).toForm()
+    }.getOrNull()
 
     private suspend fun defaultForm(): ComposerForm {
         val zone = clock.zone()
@@ -227,19 +258,31 @@ class ComposerViewModel @Inject constructor(
     }
 
     /** Opens the channel's app so the user can open the chat to message; ReplyPilot reads its name and comes back. */
-    fun pickChat() = viewModelScope.launch {
-        val app = ChatApp.forChannel(form.value.channel) ?: return@launch
+    fun pickChat() = viewModelScope.launch { pickChatInApp() }
+
+    private suspend fun pickChatInApp() {
+        val app = ChatApp.forChannel(form.value.channel) ?: return
         if (!chatBridge.isRunning) {
             _events.emit(
                 ComposerEvent.Message(
                     "To choose chats inside ${form.value.channel.displayName}, turn on ReplyPilot in Accessibility: Settings → Connected channels → WhatsApp → Turn on Auto-send.",
                 ),
             )
-            return@launch
+            return
         }
-        val names = chatBridge.pickChats(app).map { it.trim() }.filter { it.isNotEmpty() }.distinct()
-        if (names.isEmpty()) _events.emit(ComposerEvent.Message("No chat was chosen."))
-        else meta.update { it.copy(pickedChats = names) }
+        // The pick runs outside this screen so it survives Android destroying it; the result comes back via collectPicks.
+        if (!chatBridge.startPick(app, PICK_OWNER)) _events.emit(ComposerEvent.Message("Finish the chat choice that's already open first."))
+    }
+
+    /** Picks finished while this screen was away (or rebuilt) are offered as soon as it's back. */
+    private fun collectPicks() = viewModelScope.launch {
+        chatBridge.pickResult.collect { pending ->
+            if (pending?.owner != PICK_OWNER) return@collect
+            val result = chatBridge.consumePickResult(PICK_OWNER) ?: return@collect
+            val names = result.titles.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+            if (names.isEmpty()) _events.emit(ComposerEvent.Message("No chat was chosen."))
+            else meta.update { it.copy(pickedChats = names) }
+        }
     }
 
     fun confirmPickedChats(names: List<String>) {

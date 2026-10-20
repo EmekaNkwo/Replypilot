@@ -1,12 +1,12 @@
 package com.replypilot.di
 
-import com.replypilot.core.attachments.AttachmentStore
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import com.replypilot.core.accessibility.AutoSendBridge
 import com.replypilot.core.assistant.ConfiguredAssistant
+import com.replypilot.core.attachments.AttachmentStore
 import com.replypilot.core.coroutines.ApplicationScope
 import com.replypilot.core.database.ReplyPilotDatabase
 import com.replypilot.core.datastore.AppPreferencesRepository
